@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hogsmeade Chronicles</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: system-ui, -apple-system, sans-serif; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+    
+    // Lucide icons as inline SVG components
+    const Sparkles = ({size = 24, className = ""}) => (
+      <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/></svg>
+    );
+    
+    const Package = ({size = 24}) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+    );
+    
+    const Users = ({size = 24}) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+    );
+    
+    const MapPin = ({size = 24}) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+    );
+    
+    const Book = ({size = 24}) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
+    );
+    
+    const Save = ({size = 24}) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+    );
+    
+    const Upload = ({size = 24}) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+    );
+    
+    const X = ({size = 24}) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+    );
+    
+    const Wand2 = ({size = 24}) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 4V2"/><path d="M15 16v-2"/><path d="M8 9h2"/><path d="M20 9h2"/><path d="M17.8 11.8 19 13"/><path d="M15 9h0"/><path d="M17.8 6.2 19 5"/><path d="m3 21 9-9"/><path d="M12.2 6.2 11 5"/></svg>
+    );
+    
+    const Download = ({size = 24}) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+    );
+    
+    const Settings = ({size = 24}) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+    );
+
+    function HogsmeadeRPG() {
+      const [apiKey, setApiKey] = useState("");
+      const [showApiSetup, setShowApiSetup] = useState(true);
+      const [gameState, setGameState] = useState({
+        character: {
+          name: "Your Name",
+          appearance: "Not yet described",
+          clothing: "Not yet described",
+          personality: "Not yet described",
+          gold: 50
+        },
+        possessions: {
+          carried: ["wand", "small pouch of coins"],
+          owned: []
+        },
+        spaces: {
+          shop: {
+            name: "Your Shop",
+            description: "A modest, empty shop space waiting to be made your own",
+            inventory: [],
+            decorations: []
+          },
+          personalRooms: {}
+        },
+        relationships: {},
+        discoveredLocations: ["Your Shop in Hogsmeade"],
+        discoveredPeople: [],
+        memories: [],
+        currentLocation: "Your Shop in Hogsmeade",
+        currentScene: "You stand in your new shop space in Hogsmeade for the first time.",
+        worldState: {
+          atmosphere: "crisp autumn morning",
+          recentEvents: []
+        }
+      });
+
+      const [messages, setMessages] = useState([
+        {
+          role: "assistant",
+          content: `Welcome to Hogsmeade.
+
+You've just arrived in the magical village with keys to a small shop space on a quiet side street. The autumn air smells of woodsmoke and magic. Through the grimy windows of your new place, you can see the cobblestones of Hogsmeade's streets, hear distant laughter from the Three Broomsticks, and feel the weight of possibility.
+
+This is your story. Tell me about yourself - who are you? What do you look like? What kind of vibe are you bringing to Hogsmeade?
+
+Or just start exploring and let your character emerge through your choices.`
+        }
+      ]);
+
+      const [input, setInput] = useState("");
+      const [loading, setLoading] = useState(false);
+      const [enhancing, setEnhancing] = useState(false);
+      const [stateHistory, setStateHistory] = useState([]);
+      const [showStateEditor, setShowStateEditor] = useState(false);
+      const [stateEditorText, setStateEditorText] = useState("");
+      const [showSaveSlots, setShowSaveSlots] = useState(false);
+      const [saveSlots, setSaveSlots] = useState({});
+      const [showTranscript, setShowTranscript] = useState(false);
+      const [showSettings, setShowSettings] = useState(false);
+      const [settings, setSettings] = useState({
+        theme: 'dark',
+        soundEnabled: false,
+        autoSave: true
+      });
+
+      useEffect(() => {
+        const savedKey = localStorage.getItem('gemini-api-key');
+        if (savedKey) {
+          setApiKey(savedKey);
+          setShowApiSetup(false);
+        }
+        
+        const saved = localStorage.getItem('hogsmeade-saves');
+        if (saved) {
+          try {
+            setSaveSlots(JSON.parse(saved));
+          } catch (e) {
+            console.error('Failed to load save slots');
+          }
+        }
+      }, []);
+
+      const saveApiKey = () => {
+        if (!apiKey.trim()) {
+          alert("Please enter an API key!");
+          return;
+        }
+        localStorage.setItem('gemini-api-key', apiKey.trim());
+        setShowApiSetup(false);
+      };
+
+      const undoLastAction = () => {
+        if (stateHistory.length === 0) {
+          alert("Nothing to undo!");
+          return;
+        }
+
+        const previousState = stateHistory[stateHistory.length - 1];
+        setGameState(previousState.state);
+        setMessages(previousState.messages);
+        setStateHistory(stateHistory.slice(0, -1));
+      };
+
+      const openStateEditor = () => {
+        setStateEditorText(JSON.stringify(gameState, null, 2));
+        setShowStateEditor(true);
+      };
+
+      const saveStateEdit = () => {
+        try {
+          const editedState = JSON.parse(stateEditorText);
+          setGameState(editedState);
+          setShowStateEditor(false);
+          setMessages([...messages, { 
+            role: "assistant", 
+            content: "Your changes have been saved." 
+          }]);
+        } catch (error) {
+          alert("Invalid JSON format: " + error.message);
+        }
+      };
+
+      const enhanceInput = async () => {
+        if (!input.trim() || enhancing) return;
+        
+        setEnhancing(true);
+        try {
+          const prompt = `You are helping a player write detailed, atmospheric actions for an interactive wizarding world story. The player has written a short note/idea, and you need to expand it into a more detailed, immersive action description.
+
+PLAYER'S SHORT NOTE: "${input.trim()}"
+
+CURRENT CONTEXT:
+- Location: ${gameState.currentLocation}
+- Character: ${gameState.character.name}
+- Recent scene: ${gameState.currentScene}
+
+Transform their short note into a more detailed, atmospheric action description (2-4 sentences). Keep it in first or second person as appropriate. Make it vivid and immersive, but don't go overboard - it should still feel like a player action, not a novel paragraph.
+
+Examples:
+- "talk about mandrakes" → "I strike up a conversation about mandrakes, asking about their care and the best techniques for repotting them without getting bitten"
+- "go to pub" → "I push open the heavy wooden door of the Three Broomsticks, the warmth and noise of the crowded pub washing over me as I step inside"
+- "buy paint" → "I head to the general store to buy some paint - thinking dark purple or maybe black for the shop walls"
+
+Respond with ONLY the enhanced action text, nothing else. No quotation marks, no preamble, just the enhanced text.`;
+
+          const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: prompt }] }]
+            })
+          });
+
+          const data = await response.json();
+          if (data.candidates && data.candidates[0]) {
+            const enhancedText = data.candidates[0].content.parts[0].text.trim();
+            setInput(enhancedText);
+          } else {
+            throw new Error("No response from API");
+          }
+        } catch (error) {
+          alert("Failed to enhance input: " + error.message);
+        }
+        setEnhancing(false);
+      };
+
+      const saveToSlot = (slotName) => {
+        const newSlots = {
+          ...saveSlots,
+          [slotName]: {
+            state: gameState,
+            timestamp: Date.now(),
+            preview: `${gameState.character.name} in ${gameState.currentLocation}`
+          }
+        };
+        setSaveSlots(newSlots);
+        localStorage.setItem('hogsmeade-saves', JSON.stringify(newSlots));
+        alert(`Saved to ${slotName}!`);
+      };
+
+      const loadFromSlot = (slotName) => {
+        const slot = saveSlots[slotName];
+        if (slot) {
+          setGameState(slot.state);
+          setMessages([
+            { role: "assistant", content: `Loaded ${slotName}: ${slot.preview}` }
+          ]);
+          setShowSaveSlots(false);
+        }
+      };
+
+      const exportTranscript = () => {
+        const transcript = messages.map((msg, i) => {
+          const speaker = msg.role === 'user' ? 'You' : 'Story';
+          return `${speaker}: ${msg.content}`;
+        }).join('\n\n---\n\n');
+        
+        const blob = new Blob([transcript], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `hogsmeade-transcript-${Date.now()}.txt`;
+        a.click();
+        URL.revokeObjectURL(url);
+      };
+
+      const handleAction = async () => {
+        if (!input.trim() || loading) return;
+
+        const userMessage = input.trim();
+        setInput("");
+        setLoading(true);
+
+        const newMessages = [...messages, { role: "user", content: userMessage }];
+        setMessages(newMessages);
+
+        setStateHistory([...stateHistory, { state: gameState, messages: messages }]);
+
+        try {
+          const prompt = `You are the storyteller for an interactive wizarding world novel set in Hogsmeade. This is NOT a game with rigid mechanics - it's immersive, character-driven storytelling where the player has complete freedom.
+
+CRITICAL STORYTELLING PRINCIPLES:
+1. This is an INTERACTIVE NOVEL, not a D&D game. No hit points, no rigid time tracking, no forced mechanics.
+2. Generate RICH, ATMOSPHERIC descriptions. Show don't tell. Make the world feel lived-in and real.
+3. REMEMBER EVERYTHING the player creates/describes - their appearance, clothing style, how they've decorated spaces, items they own, relationships they build.
+4. When player describes themselves or their spaces, SAVE those exact details and reference them naturally in future descriptions.
+5. Be realistic about what's possible (acknowledge when something would be difficult/expensive/take time) but don't block creativity.
+6. Let the player drive the story - no railroading, no forced encounters. If they want to spend days decorating their shop, support that.
+7. Characters should feel real - complex, with their own lives, not just quest-givers.
+8. Support alternative/grungy/Weird Sisters vibes if the player wants that aesthetic - not everything is pristine Hogwarts.
+9. TRACK MONEY CAREFULLY - if player buys something, SUBTRACT the cost from their gold. If they earn money, ADD it.
+
+CURRENT COMPLETE STORY STATE:
+${JSON.stringify(gameState, null, 2)}
+
+RECENT CONVERSATION (last 8 messages for context):
+${JSON.stringify(newMessages.slice(-8), null, 2)}
+
+PLAYER'S ACTION: "${userMessage}"
+
+Respond with a JSON object in this EXACT format:
+{
+  "narrative": "Rich, immersive prose describing what happens. If player is describing themselves or decorating a space, acknowledge it beautifully. If exploring somewhere new, give 3-4 atmospheric paragraphs. Write like a novel, not a game manual.",
+  "stateChanges": {
+    "character": {
+      "name": "only if they specify/change it",
+      "appearance": "SAVE EXACT DESCRIPTION if they describe how they look",
+      "clothing": "SAVE EXACT DESCRIPTION if they describe what they wear",
+      "personality": "SAVE traits/vibes if they reveal them",
+      "gold": number (MUST update if they buy/sell/earn anything - be precise!)
+    },
+    "possessions": {
+      "carried": ["things currently on their person"],
+      "owned": ["things they own/acquire"]
+    },
+    "spaces": {
+      "shop": {
+        "name": "if they name/rename it",
+        "description": "SAVE DETAILED DESCRIPTION of how the shop looks - especially if they decorate/change it",
+        "inventory": ["items for sale in shop"],
+        "decorations": ["aesthetic elements they've added"]
+      },
+      "personalRooms": {
+        "Room Name": {
+          "description": "SAVE DETAILED DESCRIPTION if they describe/decorate personal spaces",
+          "items": ["notable items in this space"]
+        }
+      }
+    },
+    "relationships": {
+      "Character Name": {
+        "description": "who they are, what they look like",
+        "connectionLevel": "string like 'just met', 'friendly', 'close', 'complicated'",
+        "recentInteraction": "what last happened between you",
+        "personality": "their vibe/traits"
+      }
+    },
+    "discoveredLocations": ["add new locations only when actually discovered"],
+    "discoveredPeople": ["add new people only when actually met"],
+    "memories": ["add significant moments/events that should be remembered"],
+    "currentLocation": "where they are now",
+    "currentScene": "brief summary of current situation",
+    "worldState": {
+      "atmosphere": "current vibe/mood/weather",
+      "recentEvents": ["things happening in the world"]
+    }
+  }
+}
+
+REMEMBER: 
+- Your ENTIRE response must be ONLY valid JSON
+- Save ALL descriptive details the player provides about themselves, their spaces, their possessions
+- Write immersive prose, not mechanical descriptions
+- Support their creative vision, even if it's grungy/alternative/unconventional
+- Be realistic but not restrictive - acknowledge challenges without blocking player agency
+- ALWAYS update gold amount when money changes hands!`;
+
+          const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: prompt }] }],
+              generationConfig: {
+                temperature: 0.9,
+                maxOutputTokens: 2048
+              }
+            })
+          });
+
+          const data = await response.json();
+          
+          if (!data.candidates || !data.candidates[0]) {
+            throw new Error("No response from API");
+          }
+          
+          let responseText = data.candidates[0].content.parts[0].text;
+          
+          responseText = responseText.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+          
+          const gameResponse = JSON.parse(responseText);
+
+          const updatedState = { ...gameState };
+          
+          if (gameResponse.stateChanges.character) {
+            updatedState.character = {
+              ...updatedState.character,
+              ...gameResponse.stateChanges.character
+            };
+          }
+          
+          if (gameResponse.stateChanges.possessions) {
+            if (gameResponse.stateChanges.possessions.carried) {
+              updatedState.possessions.carried = gameResponse.stateChanges.possessions.carried;
+            }
+            if (gameResponse.stateChanges.possessions.owned) {
+              const newItems = gameResponse.stateChanges.possessions.owned.filter(
+                item => !updatedState.possessions.owned.includes(item)
+              );
+              updatedState.possessions.owned = [...updatedState.possessions.owned, ...newItems];
+            }
+          }
+          
+          if (gameResponse.stateChanges.spaces) {
+            if (gameResponse.stateChanges.spaces.shop) {
+              updatedState.spaces.shop = {
+                ...updatedState.spaces.shop,
+                ...gameResponse.stateChanges.spaces.shop
+              };
+            }
+            if (gameResponse.stateChanges.spaces.personalRooms) {
+              updatedState.spaces.personalRooms = {
+                ...updatedState.spaces.personalRooms,
+                ...gameResponse.stateChanges.spaces.personalRooms
+              };
+            }
+          }
+          
+          if (gameResponse.stateChanges.relationships) {
+            updatedState.relationships = {
+              ...updatedState.relationships,
+              ...gameResponse.stateChanges.relationships
+            };
+          }
+          
+          if (gameResponse.stateChanges.discoveredLocations) {
+            const newLocations = gameResponse.stateChanges.discoveredLocations.filter(
+              loc => !updatedState.discoveredLocations.includes(loc)
+            );
+            updatedState.discoveredLocations = [...updatedState.discoveredLocations, ...newLocations];
+          }
+          
+          if (gameResponse.stateChanges.discoveredPeople) {
+            const newPeople = gameResponse.stateChanges.discoveredPeople.filter(
+              person => !updatedState.discoveredPeople.includes(person)
+            );
+            updatedState.discoveredPeople = [...updatedState.discoveredPeople, ...newPeople];
+          }
+          
+          if (gameResponse.stateChanges.memories) {
+            const newMemories = gameResponse.stateChanges.memories.filter(
+              mem => !updatedState.memories.includes(mem)
+            );
+            updatedState.memories = [...updatedState.memories, ...newMemories];
+          }
+          
+          if (gameResponse.stateChanges.currentLocation) {
+            updatedState.currentLocation = gameResponse.stateChanges.currentLocation;
+          }
+          
+          if (gameResponse.stateChanges.currentScene) {
+            updatedState.currentScene = gameResponse.stateChanges.currentScene;
+          }
+          
+          if (gameResponse.stateChanges.worldState) {
+            updatedState.worldState = {
+              ...updatedState.worldState,
+              ...gameResponse.stateChanges.worldState
+            };
+          }
+
+          setGameState(updatedState);
+          setMessages([...newMessages, { role: "assistant", content: gameResponse.narrative }]);
+
+        } catch (error) {
+          console.error("Error:", error);
+          setMessages([...newMessages, { 
+            role: "assistant", 
+            content: "Something went wrong with the magic... (Error: " + error.message + "). Please try again!" 
+          }]);
+        }
+
+        setLoading(false);
+      };
+
+      const saveGame = () => {
+        const saveData = JSON.stringify(gameState, null, 2);
+        const blob = new Blob([saveData], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `hogsmeade-save-${Date.now()}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+      };
+
+      const loadGame = (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          try {
+            const loadedState = JSON.parse(e.target.result);
+            setGameState(loadedState);
+            setMessages([
+              { role: "assistant", content: "Game loaded successfully! You're back in " + loadedState.currentLocation }
+            ]);
+          } catch (error) {
+            alert("Failed to load save file: " + error.message);
+          }
+        };
+        reader.readAsText(file);
+      };
+
+      if (showApiSetup) {
+        return (
+          <div className="min-h-screen bg-gradient-to-b from-purple-900 via-indigo-900 to-slate-900 text-amber-50 p-4 flex items-center justify-center">
+            <div className="max-w-2xl w-full bg-slate-800/80 backdrop-blur rounded-lg p-8 border border-amber-600/50">
+              <div className="flex items-center gap-3 mb-6">
+                <Sparkles size={32} className="text-amber-400" />
+                <h1 className="text-3xl font-bold text-amber-400">Welcome to Hogsmeade</h1>
+              </div>
+              
+              <div className="space-y-4 text-slate-200">
+                <p className="text-lg">To begin your magical adventure, you'll need a free Google Gemini API key.</p>
+                
+                <div className="bg-slate-900/50 p-4 rounded-lg space-y-3">
+                  <h2 className="font-bold text-amber-300 text-lg">How to get your FREE API key:</h2>
+                  <ol className="list-decimal list-inside space-y-2 text-sm">
+                    <li>Visit <a href="https://ai.google.dev" target="_blank" className="text-blue-400 underline">ai.google.dev</a></li>
+                    <li>Click "Get API key in Google AI Studio"</li>
+                    <li>Sign in with your Google account</li>
+                    <li>Click "Create API Key"</li>
+                    <li>Copy your key and paste it below</li>
+                  </ol>
+                  <div className="text-xs text-amber-300 mt-3">
+                    ✨ Free tier: 1,500 requests per day - plenty for extended play!
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-amber-300">Your API Key:</label>
+                  <input
+                    type="text"
+                    value={apiKey}
+                    onChange={(e) => setApiKey(e.target.value)}
+                    placeholder="Paste your Gemini API key here..."
+                    className="w-full bg-slate-900 border border-amber-600/50 rounded px-4 py-3 focus:outline-none focus:border-amber-400 font-mono text-sm"
+                  />
+                  <div className="text-xs text-slate-400">
+                    Your key is stored locally in your browser only. It never leaves your device.
+                  </div>
+                </div>
+
+                <button
+                  onClick={saveApiKey}
+                  className="w-full bg-amber-600 hover:bg-amber-500 px-6 py-3 rounded-lg font-bold text-lg transition-colors"
+                >
+                  Begin Your Adventure
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      return (
+        <div className="min-h-screen bg-gradient-to-b from-purple-900 via-indigo-900 to-slate-900 text-amber-50 p-4">
+          <div className="max-w-6xl mx-auto">
+            {showStateEditor && (
+              <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+                <div className="bg-slate-800 rounded-lg p-6 max-w-4xl w-full max-h-[80vh] flex flex-col border border-amber-600/50">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-xl font-bold text-amber-400">Edit Game State</h2>
+                    <button onClick={() => setShowStateEditor(false)} className="text-amber-400 hover:text-amber-300">
+                      <X size={24} />
+                    </button>
+                  </div>
+                  <div className="text-sm text-amber-300 mb-3">
+                    Manually edit your game state (JSON format). Be careful - invalid JSON will not save!
+                  </div>
+                  <textarea
+                    value={stateEditorText}
+                    onChange={(e) => setStateEditorText(e.target.value)}
+                    className="flex-1 bg-slate-900 text-amber-50 font-mono text-xs p-4 rounded border border-amber-600/30 focus:outline-none focus:border-amber-400"
+                    spellCheck={false}
+                  />
+                  <div className="flex gap-3 mt-4">
+                    <button onClick={saveStateEdit} className="flex-1 bg-emerald-700 hover:bg-emerald-600 px-4 py-2 rounded font-semibold">
+                      Save Changes
+                    </button>
+                    <button onClick={() => setShowStateEditor(false)} className="flex-1 bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded font-semibold">
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {showSaveSlots && (
+              <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+                <div className="bg-slate-800 rounded-lg p-6 max-w-2xl w-full max-h-[80vh] flex flex-col border border-amber-600/50">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-xl font-bold text-amber-400">Save Slots</h2>
+                    <button onClick={() => setShowSaveSlots(false)} className="text-amber-400 hover:text-amber-300">
+                      <X size={24} />
+                    </button>
+                  </div>
+                  <div className="flex-1 overflow-y-auto space-y-3">
+                    {['Slot 1', 'Slot 2', 'Slot 3', 'Slot 4', 'Slot 5'].map(slotName => {
+                      const slot = saveSlots[slotName];
+                      return (
+                        <div key={slotName} className="bg-slate-900/50 p-4 rounded border border-amber-600/30">
+                          <div className="flex items-center justify-between">
+                            <div className="flex-1">
+                              <div className="font-semibold text-amber-300">{slotName}</div>
+                              {slot ? (
+                                <div className="text-sm text-slate-400 mt-1">
+                                  {slot.preview}
+                                  <div className="text-xs mt-1">
+                                    {new Date(slot.timestamp).toLocaleString()}
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="text-sm text-slate-500 italic">Empty</div>
+                              )}
+                            </div>
+                            <div className="flex gap-2">
+                              <button onClick={() => saveToSlot(slotName)} className="px-3 py-1 bg-emerald-700 hover:bg-emerald-600 rounded text-sm">
+                                Save Here
+                              </button>
+                              {slot && (
+                                <button onClick={() => loadFromSlot(slotName)} className="px-3 py-1 bg-indigo-700 hover:bg-indigo-600 rounded text-sm">
+                                  Load
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <button onClick={() => setShowSaveSlots(false)} className="mt-4 bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded font-semibold">
+                    Close
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {showTranscript && (
+              <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+                <div className="bg-slate-800 rounded-lg p-6 max-w-4xl w-full max-h-[80vh] flex flex-col border border-amber-600/50">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-xl font-bold text-amber-400">Story Transcript</h2>
+                    <button onClick={() => setShowTranscript(false)} className="text-amber-400 hover:text-amber-300">
+                      <X size={24} />
+                    </button>
+                  </div>
+                  <div className="flex-1 overflow-y-auto bg-slate-900/50 p-4 rounded text-sm space-y-4">
+                    {messages.map((msg, i) => (
+                      <div key={i}>
+                        <div className="font-semibold text-amber-300 mb-1">
+                          {msg.role === 'user' ? 'You' : 'Story'}:
+                        </div>
+                        <div className="text-slate-300 whitespace-pre-wrap">{msg.content}</div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex gap-3 mt-4">
+                    <button onClick={exportTranscript} className="flex-1 bg-emerald-700 hover:bg-emerald-600 px-4 py-2 rounded font-semibold flex items-center justify-center gap-2">
+                      <Download size={16} />
+                      Export as Text
+                    </button>
+                    <button onClick={() => setShowTranscript(false)} className="flex-1 bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded font-semibold">
+                      Close
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {showSettings && (
+              <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+                <div className="bg-slate-800 rounded-lg p-6 max-w-md w-full border border-amber-600/50">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-xl font-bold text-amber-400">Settings</h2>
+                    <button onClick={() => setShowSettings(false)} className="text-amber-400 hover:text-amber-300">
+                      <X size={24} />
+                    </button>
+                  </div>
+                  <div className="space-y-4">
+                    <div className="bg-slate-900/50 p-4 rounded">
+                      <label className="flex items-center justify-between">
+                        <span className="text-amber-300">API Key</span>
+                        <button onClick={() => setShowApiSetup(true)} className="text-sm px-3 py-1 bg-purple-700 hover:bg-purple-600 rounded">
+                          Change
+                        </button>
+                      </label>
+                      <div className="text-xs text-slate-400 mt-2">Update your Gemini API key</div>
+                    </div>
+                    <div className="bg-slate-900/50 p-4 rounded">
+                      <label className="flex items-center justify-between">
+                        <span className="text-amber-300">Theme</span>
+                        <select
+                          value={settings.theme}
+                          onChange={(e) => setSettings({...settings, theme: e.target.value})}
+                          className="bg-slate-700 text-amber-50 px-3 py-1 rounded border border-amber-600/30"
+                        >
+                          <option value="dark">Dark (Purple)</option>
+                          <option value="light">Light (Coming Soon)</option>
+                        </select>
+                      </label>
+                    </div>
+                  </div>
+                  <button onClick={() => setShowSettings(false)} className="mt-4 w-full bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded font-semibold">
+                    Close
+                  </button>
+                </div>
+              </div>
+            )}
+
+            <div className="bg-slate-800/50 backdrop-blur rounded-lg p-4 mb-4 border border-amber-600/30">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="text-amber-400" size={24} />
+                  <h1 className="text-2xl font-bold text-amber-400">Hogsmeade Chronicles</h1>
+                </div>
+                <div className="flex gap-2 flex-wrap">
+                  <button onClick={undoLastAction} disabled={stateHistory.length === 0} className="flex items-center gap-2 px-3 py-1 bg-orange-700 hover:bg-orange-600 disabled:bg-slate-700 disabled:text-slate-500 rounded text-sm transition-colors" title="Undo last action">
+                    <span className="text-lg leading-none">↶</span>
+                    Undo
+                  </button>
+                  <button onClick={openStateEditor} className="flex items-center gap-2 px-3 py-1 bg-purple-700 hover:bg-purple-600 rounded text-sm transition-colors" title="Manually edit game state">
+                    <span className="text-lg leading-none">✎</span>
+                    Edit
+                  </button>
+                  <button onClick={() => setShowSaveSlots(true)} className="flex items-center gap-2 px-3 py-1 bg-emerald-700 hover:bg-emerald-600 rounded text-sm transition-colors" title="Save slots">
+                    <Save size={16} />
+                    Slots
+                  </button>
+                  <button onClick={saveGame} className="flex items-center gap-2 px-3 py-1 bg-emerald-600 hover:bg-emerald-500 rounded text-sm transition-colors" title="Quick save to file">
+                    <Download size={16} />
+                    File
+                  </button>
+                  <label className="flex items-center gap-2 px-3 py-1 bg-indigo-700 hover:bg-indigo-600 rounded text-sm cursor-pointer transition-colors">
+                    <Upload size={16} />
+                    Load
+                    <input type="file" accept=".json" onChange={loadGame} className="hidden" />
+                  </label>
+                  <button onClick={() => setShowTranscript(true)} className="flex items-center gap-2 px-3 py-1 bg-blue-700 hover:bg-blue-600 rounded text-sm transition-colors" title="View story transcript">
+                    <Book size={16} />
+                  </button>
+                  <button onClick={() => setShowSettings(true)} className="flex items-center gap-2 px-3 py-1 bg-slate-700 hover:bg-slate-600 rounded text-sm transition-colors" title="Settings">
+                    <Settings size={16} />
+                  </button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                <div className="bg-slate-900/50 p-3 rounded">
+                  <div className="text-xs text-amber-300 mb-1">Character</div>
+                  <div className="font-semibold">{gameState.character.name}</div>
+                </div>
+                <div className="bg-slate-900/50 p-3 rounded">
+                  <div className="text-xs text-amber-300 mb-1">Gold</div>
+                  <div className="font-semibold">{gameState.character.gold} ᴳ</div>
+                </div>
+                <div className="bg-slate-900/50 p-3 rounded">
+                  <div className="text-xs text-amber-300 mb-1">Location</div>
+                  <div className="font-semibold text-sm">{gameState.currentLocation}</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-4">
+              <div className="space-y-4">
+                <div className="bg-slate-800/50 backdrop-blur rounded-lg p-4 border border-amber-600/30">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Sparkles className="text-amber-400" size={18} />
+                    <h2 className="font-bold text-amber-400">You</h2>
+                  </div>
+                  <div className="text-sm space-y-2">
+                    <div>
+                      <span className="text-amber-300 font-semibold">{gameState.character.name}</span>
+                    </div>
+                    {gameState.character.appearance !== "Not yet described" && (
+                      <div className="text-xs text-slate-300 bg-slate-900/50 p-2 rounded">
+                        <div className="text-amber-300 mb-1">Appearance</div>
+                        {gameState.character.appearance}
+                      </div>
+                    )}
+                    {gameState.character.clothing !== "Not yet described" && (
+                      <div className="text-xs text-slate-300 bg-slate-900/50 p-2 rounded">
+                        <div className="text-amber-300 mb-1">Style</div>
+                        {gameState.character.clothing}
+                      </div>
+                    )}
+                    <div className="text-xs bg-slate-900/50 p-2 rounded">
+                      <span className="text-amber-300">Gold:</span> {gameState.character.gold} ᴳ
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-slate-800/50 backdrop-blur rounded-lg p-4 border border-amber-600/30">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Package className="text-amber-400" size={18} />
+                    <h2 className="font-bold text-amber-400">Your Shop</h2>
+                  </div>
+                  <div className="text-sm mb-2">
+                    <span className="text-amber-300 font-semibold">{gameState.spaces.shop.name}</span>
+                  </div>
+                  <div className="text-xs text-slate-300 mb-3 bg-slate-900/50 p-2 rounded italic">
+                    {gameState.spaces.shop.description}
+                  </div>
+                  {gameState.spaces.shop.decorations.length > 0 && (
+                    <div className="text-xs mb-2">
+                      <div className="text-amber-300 mb-1">Decorations</div>
+                      {gameState.spaces.shop.decorations.map((item, i) => (
+                        <div key={i} className="text-slate-300">• {item}</div>
+                      ))}
+                    </div>
+                  )}
+                  {gameState.spaces.shop.inventory.length > 0 && (
+                    <div className="text-xs">
+                      <div className="text-amber-300 mb-1">Inventory</div>
+                      {gameState.spaces.shop.inventory.map((item, i) => (
+                        <div key={i} className="bg-slate-900/50 p-1 rounded mb-1">{item}</div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="bg-slate-800/50 backdrop-blur rounded-lg p-4 border border-amber-600/30">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Book className="text-amber-400" size={18} />
+                    <h2 className="font-bold text-amber-400">Possessions</h2>
+                  </div>
+                  <div className="text-xs space-y-2">
+                    {gameState.possessions.carried.length > 0 && (
+                      <div>
+                        <div className="text-amber-300 mb-1">Carrying</div>
+                        {gameState.possessions.carried.map((item, i) => (
+                          <div key={i} className="text-slate-300">• {item}</div>
+                        ))}
+                      </div>
+                    )}
+                    {gameState.possessions.owned.length > 0 && (
+                      <div>
+                        <div className="text-amber-300 mb-1 mt-2">Owned</div>
+                        {gameState.possessions.owned.slice(-8).map((item, i) => (
+                          <div key={i} className="text-slate-300">• {item}</div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="bg-slate-800/50 backdrop-blur rounded-lg p-4 border border-amber-600/30">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Users className="text-amber-400" size={18} />
+                    <h2 className="font-bold text-amber-400">Relationships</h2>
+                  </div>
+                  <div className="text-xs space-y-2">
+                    {Object.entries(gameState.relationships).length === 0 ? (
+                      <div className="text-slate-400 italic">No one yet...</div>
+                    ) : (
+                      Object.entries(gameState.relationships).map(([name, data]) => (
+                        <div key={name} className="bg-slate-900/50 p-2 rounded">
+                          <div className="font-semibold text-amber-300">{name}</div>
+                          <div className="text-slate-400 text-xs mt-1">{data.connectionLevel}</div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+
+                <div className="bg-slate-800/50 backdrop-blur rounded-lg p-4 border border-amber-600/30">
+                  <div className="flex items-center gap-2 mb-3">
+                    <MapPin className="text-amber-400" size={18} />
+                    <h2 className="font-bold text-amber-400">Places</h2>
+                  </div>
+                  <div className="text-xs space-y-1">
+                    {gameState.discoveredLocations.slice(-6).map((loc, i) => (
+                      <div key={i} className="text-slate-300">• {loc}</div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="md:col-span-2 bg-slate-800/50 backdrop-blur rounded-lg border border-amber-600/30 flex flex-col" style={{ height: '70vh' }}>
+                <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                  {messages.map((msg, i) => (
+                    <div
+                      key={i}
+                      className={`${
+                        msg.role === 'user'
+                          ? 'bg-indigo-900/50 ml-8'
+                          : 'bg-slate-900/50 mr-8'
+                      } p-4 rounded-lg`}
+                    >
+                      <div className="whitespace-pre-wrap">{msg.content}</div>
+                    </div>
+                  ))}
+                  {loading && (
+                    <div className="bg-slate-900/50 mr-8 p-4 rounded-lg">
+                      <div className="flex items-center gap-2">
+                        <Sparkles className="animate-pulse text-amber-400" size={16} />
+                        <span className="text-amber-300">The magic is working...</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="p-4 border-t border-amber-600/30">
+                  <div className="flex gap-2 mb-2">
+                    <input
+                      type="text"
+                      value={input}
+                      onChange={(e) => setInput(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleAction()}
+                      placeholder="What do you do? Describe yourself, explore, interact, create..."
+                      className="flex-1 bg-slate-900 border border-amber-600/50 rounded px-4 py-2 focus:outline-none focus:border-amber-400"
+                      disabled={loading || enhancing}
+                    />
+                    <button
+                      onClick={enhanceInput}
+                      disabled={loading || enhancing || !input.trim()}
+                      className="px-4 py-2 bg-purple-700 hover:bg-purple-600 disabled:bg-slate-700 disabled:text-slate-500 rounded font-semibold transition-colors flex items-center gap-2"
+                      title="Enhance your short note into detailed prose"
+                    >
+                      <Wand2 size={16} />
+                      {enhancing ? '...' : 'Enhance'}
+                    </button>
+                    <button
+                      onClick={handleAction}
+                      disabled={loading || enhancing || !input.trim()}
+                      className="px-6 py-2 bg-amber-600 hover:bg-amber-500 disabled:bg-slate-700 disabled:text-slate-500 rounded font-semibold transition-colors"
+                    >
+                      {loading ? '...' : 'Act'}
+                    </button>
+                  </div>
+                  <div className="text-xs text-slate-400">
+                    💡 <strong>Enhance:</strong> Turn short notes into detailed actions • <strong>Examples:</strong> "talk about mandrakes" → detailed dialogue • "buy paint" → atmospheric scene
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-4 text-center text-sm text-amber-300/70 italic">
+              {gameState.worldState.atmosphere}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.render(<HogsmeadeRPG />, document.getElementById('root'));
+  </script>
+</body>
+</html>
