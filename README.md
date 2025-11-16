@@ -1,1 +1,1 @@
-# gemeni_shop_rpg
+# gemini_shop_rpg
