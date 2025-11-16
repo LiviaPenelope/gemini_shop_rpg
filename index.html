@@ -6,7 +6,18 @@
   <title>Hogsmeade Chronicles</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    body { font-family: system-ui, -apple-system, sans-serif; }
+    html, body {
+      font-family: system-ui, -apple-system, sans-serif;
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    #root {
+      min-height: 100vh;
+      width: 100%;
+    }
   </style>
 </head>
 <body>
@@ -64,6 +75,10 @@
       <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
     );
 
+    const Menu = ({size = 24}) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+    );
+
     function HogsmeadeRPG() {
       const [apiKey, setApiKey] = useState("");
       const [showApiSetup, setShowApiSetup] = useState(true);
@@ -119,6 +134,7 @@ Or just start exploring and let your character emerge through your choices.`
       const [stateHistory, setStateHistory] = useState([]);
       const [showStateEditor, setShowStateEditor] = useState(false);
       const [stateEditorText, setStateEditorText] = useState("");
+      const [showSidebar, setShowSidebar] = useState(false);
       const [showSaveSlots, setShowSaveSlots] = useState(false);
       const [saveSlots, setSaveSlots] = useState({});
       const [showTranscript, setShowTranscript] = useState(false);
@@ -270,6 +286,49 @@ Respond with ONLY the enhanced action text, nothing else. No quotation marks, no
         a.download = `hogsmeade-transcript-${Date.now()}.txt`;
         a.click();
         URL.revokeObjectURL(url);
+      };
+
+      const exportAllSaves = () => {
+        const exportData = {
+          saves: saveSlots,
+          apiKey: apiKey,
+          exportDate: new Date().toISOString()
+        };
+        const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `hogsmeade-all-saves-${Date.now()}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        alert('✅ All saves exported! Keep this file safe.');
+      };
+
+      const importAllSaves = (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          try {
+            const importData = JSON.parse(e.target.result);
+            if (importData.saves) {
+              setSaveSlots(importData.saves);
+              localStorage.setItem('hogsmeade-saves', JSON.stringify(importData.saves));
+              if (importData.apiKey) {
+                setApiKey(importData.apiKey);
+                localStorage.setItem('gemini-api-key', importData.apiKey);
+              }
+              alert('✅ All saves imported successfully!');
+            } else {
+              alert('❌ Invalid save file format');
+            }
+          } catch (error) {
+            alert('❌ Failed to import saves: ' + error.message);
+          }
+        };
+        reader.readAsText(file);
+        event.target.value = '';
       };
 
       const handleAction = async () => {
@@ -565,7 +624,7 @@ REMEMBER:
       }
 
       return (
-        <div className="min-h-screen bg-gradient-to-b from-purple-900 via-indigo-900 to-slate-900 text-amber-50 p-4">
+        <div className="min-h-screen w-full bg-gradient-to-b from-purple-900 via-indigo-900 to-slate-900 text-amber-50 p-2 sm:p-4">
           <div className="max-w-6xl mx-auto">
             {showStateEditor && (
               <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
@@ -640,7 +699,18 @@ REMEMBER:
                       );
                     })}
                   </div>
-                  <button onClick={() => setShowSaveSlots(false)} className="mt-4 bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded font-semibold">
+                  <div className="flex gap-2 mt-4">
+                    <button onClick={exportAllSaves} className="flex-1 bg-blue-700 hover:bg-blue-600 px-4 py-2 rounded font-semibold flex items-center justify-center gap-2" title="Export all saves to a file (great for Android backup!)">
+                      <Download size={16} />
+                      Export All
+                    </button>
+                    <label className="flex-1 bg-purple-700 hover:bg-purple-600 px-4 py-2 rounded font-semibold flex items-center justify-center gap-2 cursor-pointer" title="Import all saves from a file">
+                      <Upload size={16} />
+                      Import All
+                      <input type="file" accept=".json" onChange={importAllSaves} className="hidden" />
+                    </label>
+                  </div>
+                  <button onClick={() => setShowSaveSlots(false)} className="mt-2 w-full bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded font-semibold">
                     Close
                   </button>
                 </div>
@@ -719,61 +789,53 @@ REMEMBER:
               </div>
             )}
 
-            <div className="bg-slate-800/50 backdrop-blur rounded-lg p-4 mb-4 border border-amber-600/30">
-              <div className="flex items-center justify-between mb-4">
+            <div className="bg-slate-800/50 backdrop-blur rounded-lg p-3 sm:p-4 mb-4 border border-amber-600/30">
+              <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
                 <div className="flex items-center gap-2">
-                  <Sparkles className="text-amber-400" size={24} />
-                  <h1 className="text-2xl font-bold text-amber-400">Hogsmeade Chronicles</h1>
+                  <Sparkles className="text-amber-400" size={20} />
+                  <h1 className="text-lg sm:text-2xl font-bold text-amber-400">Hogsmeade</h1>
                 </div>
-                <div className="flex gap-2 flex-wrap">
-                  <button onClick={undoLastAction} disabled={stateHistory.length === 0} className="flex items-center gap-2 px-3 py-1 bg-orange-700 hover:bg-orange-600 disabled:bg-slate-700 disabled:text-slate-500 rounded text-sm transition-colors" title="Undo last action">
+                <div className="flex gap-1 sm:gap-2">
+                  <button onClick={() => setShowSidebar(!showSidebar)} className="md:hidden flex items-center gap-1 px-2 sm:px-3 py-1 bg-amber-700 hover:bg-amber-600 rounded text-sm transition-colors" title="Toggle sidebar">
+                    <Menu size={16} />
+                  </button>
+                  <button onClick={undoLastAction} disabled={stateHistory.length === 0} className="flex items-center gap-1 px-2 sm:px-3 py-1 bg-orange-700 hover:bg-orange-600 disabled:bg-slate-700 disabled:text-slate-500 rounded text-xs sm:text-sm transition-colors" title="Undo last action">
                     <span className="text-lg leading-none">↶</span>
-                    Undo
+                    <span className="hidden sm:inline">Undo</span>
                   </button>
-                  <button onClick={openStateEditor} className="flex items-center gap-2 px-3 py-1 bg-purple-700 hover:bg-purple-600 rounded text-sm transition-colors" title="Manually edit game state">
-                    <span className="text-lg leading-none">✎</span>
-                    Edit
+                  <button onClick={() => setShowSaveSlots(true)} className="flex items-center gap-1 px-2 sm:px-3 py-1 bg-emerald-700 hover:bg-emerald-600 rounded text-xs sm:text-sm transition-colors" title="Save slots">
+                    <Save size={14} />
+                    <span className="hidden sm:inline">Save</span>
                   </button>
-                  <button onClick={() => setShowSaveSlots(true)} className="flex items-center gap-2 px-3 py-1 bg-emerald-700 hover:bg-emerald-600 rounded text-sm transition-colors" title="Save slots">
-                    <Save size={16} />
-                    Slots
-                  </button>
-                  <button onClick={saveGame} className="flex items-center gap-2 px-3 py-1 bg-emerald-600 hover:bg-emerald-500 rounded text-sm transition-colors" title="Quick save to file">
-                    <Download size={16} />
-                    File
-                  </button>
-                  <label className="flex items-center gap-2 px-3 py-1 bg-indigo-700 hover:bg-indigo-600 rounded text-sm cursor-pointer transition-colors">
-                    <Upload size={16} />
-                    Load
+                  <label className="flex items-center gap-1 px-2 sm:px-3 py-1 bg-indigo-700 hover:bg-indigo-600 rounded text-xs sm:text-sm cursor-pointer transition-colors">
+                    <Upload size={14} />
+                    <span className="hidden sm:inline">Load</span>
                     <input type="file" accept=".json" onChange={loadGame} className="hidden" />
                   </label>
-                  <button onClick={() => setShowTranscript(true)} className="flex items-center gap-2 px-3 py-1 bg-blue-700 hover:bg-blue-600 rounded text-sm transition-colors" title="View story transcript">
-                    <Book size={16} />
-                  </button>
-                  <button onClick={() => setShowSettings(true)} className="flex items-center gap-2 px-3 py-1 bg-slate-700 hover:bg-slate-600 rounded text-sm transition-colors" title="Settings">
-                    <Settings size={16} />
+                  <button onClick={() => setShowSettings(true)} className="flex items-center gap-1 px-2 sm:px-3 py-1 bg-slate-700 hover:bg-slate-600 rounded text-xs sm:text-sm transition-colors" title="Settings">
+                    <Settings size={14} />
                   </button>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                <div className="bg-slate-900/50 p-3 rounded">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-4">
+                <div className="bg-slate-900/50 p-2 sm:p-3 rounded">
                   <div className="text-xs text-amber-300 mb-1">Character</div>
-                  <div className="font-semibold">{gameState.character.name}</div>
+                  <div className="font-semibold text-sm">{gameState.character.name}</div>
                 </div>
-                <div className="bg-slate-900/50 p-3 rounded">
+                <div className="bg-slate-900/50 p-2 sm:p-3 rounded">
                   <div className="text-xs text-amber-300 mb-1">Gold</div>
-                  <div className="font-semibold">{gameState.character.gold} ᴳ</div>
+                  <div className="font-semibold text-sm">{gameState.character.gold} ᴳ</div>
                 </div>
-                <div className="bg-slate-900/50 p-3 rounded">
+                <div className="bg-slate-900/50 p-2 sm:p-3 rounded col-span-2 sm:col-span-1">
                   <div className="text-xs text-amber-300 mb-1">Location</div>
-                  <div className="font-semibold text-sm">{gameState.currentLocation}</div>
+                  <div className="font-semibold text-xs sm:text-sm truncate">{gameState.currentLocation}</div>
                 </div>
               </div>
             </div>
 
             <div className="grid md:grid-cols-3 gap-4">
-              <div className="space-y-4">
+              <div className={`space-y-4 ${showSidebar ? 'block' : 'hidden'} md:block`}>
                 <div className="bg-slate-800/50 backdrop-blur rounded-lg p-4 border border-amber-600/30">
                   <div className="flex items-center gap-2 mb-3">
                     <Sparkles className="text-amber-400" size={18} />
@@ -887,59 +949,59 @@ REMEMBER:
                 </div>
               </div>
 
-              <div className="md:col-span-2 bg-slate-800/50 backdrop-blur rounded-lg border border-amber-600/30 flex flex-col" style={{ height: '70vh' }}>
-                <div className="flex-1 overflow-y-auto p-4 space-y-4">
+              <div className="md:col-span-2 bg-slate-800/50 backdrop-blur rounded-lg border border-amber-600/30 flex flex-col" style={{ height: '60vh', minHeight: '400px' }}>
+                <div className="flex-1 overflow-y-auto p-2 sm:p-4 space-y-3 sm:space-y-4">
                   {messages.map((msg, i) => (
                     <div
                       key={i}
                       className={`${
                         msg.role === 'user'
-                          ? 'bg-indigo-900/50 ml-8'
-                          : 'bg-slate-900/50 mr-8'
-                      } p-4 rounded-lg`}
+                          ? 'bg-indigo-900/50 ml-4 sm:ml-8'
+                          : 'bg-slate-900/50 mr-4 sm:mr-8'
+                      } p-3 sm:p-4 rounded-lg text-sm sm:text-base`}
                     >
                       <div className="whitespace-pre-wrap">{msg.content}</div>
                     </div>
                   ))}
                   {loading && (
-                    <div className="bg-slate-900/50 mr-8 p-4 rounded-lg">
+                    <div className="bg-slate-900/50 mr-4 sm:mr-8 p-3 sm:p-4 rounded-lg">
                       <div className="flex items-center gap-2">
                         <Sparkles className="animate-pulse text-amber-400" size={16} />
-                        <span className="text-amber-300">The magic is working...</span>
+                        <span className="text-amber-300 text-sm">The magic is working...</span>
                       </div>
                     </div>
                   )}
                 </div>
 
-                <div className="p-4 border-t border-amber-600/30">
-                  <div className="flex gap-2 mb-2">
+                <div className="p-2 sm:p-4 border-t border-amber-600/30">
+                  <div className="flex gap-1 sm:gap-2 mb-2">
                     <input
                       type="text"
                       value={input}
                       onChange={(e) => setInput(e.target.value)}
                       onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleAction()}
-                      placeholder="What do you do? Describe yourself, explore, interact, create..."
-                      className="flex-1 bg-slate-900 border border-amber-600/50 rounded px-4 py-2 focus:outline-none focus:border-amber-400"
+                      placeholder="What do you do?"
+                      className="flex-1 bg-slate-900 border border-amber-600/50 rounded px-2 sm:px-4 py-2 text-sm sm:text-base focus:outline-none focus:border-amber-400"
                       disabled={loading || enhancing}
                     />
                     <button
                       onClick={enhanceInput}
                       disabled={loading || enhancing || !input.trim()}
-                      className="px-4 py-2 bg-purple-700 hover:bg-purple-600 disabled:bg-slate-700 disabled:text-slate-500 rounded font-semibold transition-colors flex items-center gap-2"
+                      className="px-2 sm:px-4 py-2 bg-purple-700 hover:bg-purple-600 disabled:bg-slate-700 disabled:text-slate-500 rounded font-semibold transition-colors flex items-center gap-1 text-sm"
                       title="Enhance your short note into detailed prose"
                     >
-                      <Wand2 size={16} />
-                      {enhancing ? '...' : 'Enhance'}
+                      <Wand2 size={14} />
+                      <span className="hidden sm:inline">{enhancing ? '...' : 'Enhance'}</span>
                     </button>
                     <button
                       onClick={handleAction}
                       disabled={loading || enhancing || !input.trim()}
-                      className="px-6 py-2 bg-amber-600 hover:bg-amber-500 disabled:bg-slate-700 disabled:text-slate-500 rounded font-semibold transition-colors"
+                      className="px-3 sm:px-6 py-2 bg-amber-600 hover:bg-amber-500 disabled:bg-slate-700 disabled:text-slate-500 rounded font-semibold transition-colors text-sm"
                     >
                       {loading ? '...' : 'Act'}
                     </button>
                   </div>
-                  <div className="text-xs text-slate-400">
+                  <div className="text-xs text-slate-400 hidden sm:block">
                     💡 <strong>Enhance:</strong> Turn short notes into detailed actions • <strong>Examples:</strong> "talk about mandrakes" → detailed dialogue • "buy paint" → atmospheric scene
                   </div>
                 </div>
